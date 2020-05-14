@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include "VertexBuffer.h"
 
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -58,9 +59,8 @@ int main()
         0, 2, 3,
     };
 
-    // vbo and ebo.
-    unsigned int vbo, ebo;
-    glGenBuffers(1, &vbo);
+    // ebo.
+    unsigned int ebo;
     glGenBuffers(1, &ebo);
 
     // vao.
@@ -69,8 +69,8 @@ int main()
     glBindVertexArray(vao);
 
     // Configure vbo and ebo.
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
+    VertexBuffer vbo(4 * 3 * sizeof(float), vertices);
+    vbo.bind();
 
     // vertex atrribute pointers.
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (const void*)0);
