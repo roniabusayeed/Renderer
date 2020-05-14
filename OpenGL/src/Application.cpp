@@ -41,12 +41,56 @@ int main()
     // Set buffer swap interval.
     glfwSwapInterval(1);
 
+    // Vertex data.
+    float vertices[] =
+    {
+        // Positions.
+        -0.5f, -0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f,
+         0.5f,  0.5f, 0.0f,
+        -0.5f,  0.5f, 0.0f,
+    };
+
+    // Index data.
+    unsigned int indices[] =
+    {
+        0, 1, 2,
+        0, 2, 3,
+    };
+
+    // vbo and ebo.
+    unsigned int vbo, ebo;
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+
+    // vao.
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // Configure vbo and ebo.
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
+
+    // vertex atrribute pointers.
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (const void*)0);
+    glEnableVertexAttribArray(0);
+
+    // ebo configuration.
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
+    // Unbind vao for later use.
+    glBindVertexArray(0);
+
     // Render Loop.
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
         glClear(GL_COLOR_BUFFER_BIT);
         
+        glBindVertexArray(vao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
