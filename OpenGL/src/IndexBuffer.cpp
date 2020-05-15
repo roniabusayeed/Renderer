@@ -26,3 +26,8 @@ void IndexBuffer::Unbind() const
 {
     GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
+
+unsigned int IndexBuffer::GetIndexType() const
+{
+    return GL_UNSIGNED_INT;
+}
