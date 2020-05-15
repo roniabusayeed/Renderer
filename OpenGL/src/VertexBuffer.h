@@ -4,9 +4,9 @@ class VertexBuffer
 private:
     unsigned int m_id;
 public:
-    VertexBuffer(size_t size, const void* data);
+    VertexBuffer(const void* data, size_t size);
     ~VertexBuffer();
-    void bind()const;
-    void unbind()const;
+    void Bind()const;
+    void Unbind()const;
 };
 
