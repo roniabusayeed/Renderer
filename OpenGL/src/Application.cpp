@@ -7,9 +7,12 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "DebugUtils.h"
+#include "Shader.h"
+
+#include "Renderer.h"
 
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+void ProcessInput(GLFWwindow* window);
 
 int main()
 {
@@ -64,30 +67,34 @@ int main()
     };
 
     {
-        // vb.
-        VertexBuffer vbo(vertices, 4 * 3 * sizeof(float));
+        VertexBuffer vb(vertices, 4 * 3 * sizeof(float));
 
-        // vb layout.
         VertexBufferLayout layout;
         layout.Push<float>(3);
-        
-        // Add buffer and it's layout to va object.
+
+        IndexBuffer ib(indices, 6);
+        ib.Unbind();
+
         VertexArray va;
-        va.AddBuffer(vbo, layout);
+        va.AddBuffer(vb, layout);
         va.Unbind();
 
-        IndexBuffer ibo(indices, 6);
-        
+        Shader shader("res/shaders/source.shader");
+        shader.Bind();
+
+        Renderer renderer;
 
         // Render Loop.
         while (!glfwWindowShouldClose(window))
         {
-            processInput(window);
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+            ProcessInput(window);
+            renderer.Clear();
 
-            ibo.Bind();
-            va.Bind();
-            GLCall(glDrawElements(GL_TRIANGLES, ibo.GetCount(), GL_UNSIGNED_INT, 0));
+            // Set uniform value dynamically.
+            float greenValue = sin(glfwGetTime() * 3) / 2 + 0.5f;
+            shader.SetUniform("u_greenValue", greenValue);
+            
+            renderer.Draw(va, ib, shader);
 
             glfwSwapBuffers(window);
             glfwPollEvents();
@@ -102,7 +109,7 @@ void frameBufferSizeCallback(GLFWwindow* window, int width, int height)
     GLCall(glViewport(0, 0, width, height));
 }
 
-void processInput(GLFWwindow* window)
+void ProcessInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
