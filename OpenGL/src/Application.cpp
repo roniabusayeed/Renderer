@@ -2,7 +2,11 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+
+#include "VertexArray.h"
 #include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "DebugUtils.h"
 
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -59,41 +63,35 @@ int main()
         0, 2, 3,
     };
 
-    // ebo.
-    unsigned int ebo;
-    glGenBuffers(1, &ebo);
-
-    // vao.
-    unsigned int vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Configure vbo and ebo.
-    VertexBuffer vbo(4 * 3 * sizeof(float), vertices);
-    vbo.bind();
-
-    // vertex atrribute pointers.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (const void*)0);
-    glEnableVertexAttribArray(0);
-
-    // ebo configuration.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-
-    // Unbind vao for later use.
-    glBindVertexArray(0);
-
-    // Render Loop.
-    while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
-        glClear(GL_COLOR_BUFFER_BIT);
-        
-        glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // vb.
+        VertexBuffer vbo(vertices, 4 * 3 * sizeof(float));
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        // vb layout.
+        VertexBufferLayout layout;
+        layout.Push<float>(3);
+        
+        // Add buffer and it's layout to va object.
+        VertexArray va;
+        va.AddBuffer(vbo, layout);
+        va.Unbind();
+
+        IndexBuffer ibo(indices, 6);
+        
+
+        // Render Loop.
+        while (!glfwWindowShouldClose(window))
+        {
+            processInput(window);
+            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+
+            ibo.Bind();
+            va.Bind();
+            GLCall(glDrawElements(GL_TRIANGLES, ibo.GetCount(), GL_UNSIGNED_INT, 0));
+
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+        }
     }
 
     glfwTerminate();
@@ -101,7 +99,7 @@ int main()
 
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    glViewport(0, 0, width, height);
+    GLCall(glViewport(0, 0, width, height));
 }
 
 void processInput(GLFWwindow* window)
