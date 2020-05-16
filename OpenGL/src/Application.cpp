@@ -16,6 +16,8 @@
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height);
 void ProcessInput(GLFWwindow* window);
 
+static float mixRatio = 0.0f;
+
 int main()
 {
     // Initialize GLFW library.
@@ -28,7 +30,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a window and valid OpenGL context.
-    GLFWwindow* window = glfwCreateWindow(680, 480, "Ignite", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1066, 600, "Ignite", nullptr, nullptr);
     if (!window)
     {
         glfwTerminate();
@@ -55,10 +57,10 @@ int main()
     float vertices[] =
     {
         // Positions.           // Colors                   // Texture coordinates
-        -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,
-         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,
-        -0.5f,  0.5f, 0.0f,     1.0f, 0.0f, 1.0f, 1.0f,     0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f,     1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
+         1.0f, -1.0f, 0.0f,     0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,
+         1.0f,  1.0f, 0.0f,     0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,
+        -1.0f,  1.0f, 0.0f,     1.0f, 0.0f, 1.0f, 1.0f,     0.0f, 1.0f,
     };
 
     // Index data.
@@ -95,6 +97,7 @@ int main()
         // Sending textures to Shader via Sampler2D uniform.
         shader.SetUniform("u_texture1", 0);
         shader.SetUniform("u_texture2", 1);
+        
 
         Renderer renderer;
 
@@ -103,7 +106,9 @@ int main()
         {
             ProcessInput(window);
             renderer.Clear();
-            
+
+            shader.SetUniform("u_ratio", mixRatio);
+
             renderer.Draw(va, ib, shader);
 
             glfwSwapBuffers(window);
@@ -119,8 +124,29 @@ void frameBufferSizeCallback(GLFWwindow* window, int width, int height)
     GLCall(glViewport(0, 0, width, height));
 }
 
+void changeMixRatio(bool increment)
+{
+    float incrementFactor = 0.1f;
+    if (increment)
+    {
+        if (mixRatio < 1.0f)
+            mixRatio += incrementFactor;
+    }
+    else
+    {
+        if (mixRatio > 0.0f)
+            mixRatio -= incrementFactor;
+    }
+}
+
 void ProcessInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        changeMixRatio(false);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        changeMixRatio(true);
+    
 }
