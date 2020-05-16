@@ -1,3 +1,7 @@
 .vs/
-bin/
+bin/intermediates/
+bin/x64/Debug/
 OpenGL/res/textures/
+*.iobj
+*.ipdb
+*.pdb
