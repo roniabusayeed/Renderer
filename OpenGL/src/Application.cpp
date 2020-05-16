@@ -86,47 +86,15 @@ int main()
         Shader shader("res/shaders/source.shader");
         shader.Bind();
 
-        unsigned int texture1;
-        glGenTextures(1, &texture1);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR_MIPMAP_LINEAR);
-        int width1, height1, nrChannels1;
-        stbi_set_flip_vertically_on_load(true);
-        unsigned char* textureData1 = stbi_load("res/textures/img1.jpg", &width1, &height1, &nrChannels1, 0);
-        ASSERT(textureData1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width1, height1, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData1);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        stbi_image_free(textureData1);
+        // Textures.
+        Texture texture1("res/textures/img1.jpg");
+        Texture texture2("res/textures/img2.jpg");
+        texture1.Bind(0);   // Binding to texture slot=0
+        texture2.Bind(1);   // Binding to texture slot=1
+
+        // Sending textures to Shader via Sampler2D uniform.
         shader.SetUniform("u_texture1", 0);
-
-        unsigned int texture2;
-        glGenTextures(1, &texture2);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR_MIPMAP_LINEAR);
-        int width2, height2, nrChannels2;
-        stbi_set_flip_vertically_on_load(true);
-        unsigned char* textureData2 = stbi_load("res/textures/img2.jpg", &width2, &height2, &nrChannels2, 0);
-        ASSERT(textureData2);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width2, height2, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData2);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        stbi_image_free(textureData2);
         shader.SetUniform("u_texture2", 1);
-
-       
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
 
         Renderer renderer;
 
@@ -135,7 +103,6 @@ int main()
         {
             ProcessInput(window);
             renderer.Clear();
-            
             
             renderer.Draw(va, ib, shader);
 
