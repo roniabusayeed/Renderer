@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "vendor/stb_image.h"
 
 #include <iostream>
 
@@ -8,6 +9,7 @@
 #include "IndexBuffer.h"
 #include "DebugUtils.h"
 #include "Shader.h"
+#include "Texture.h"
 
 #include "Renderer.h"
 
@@ -52,11 +54,11 @@ int main()
     // Vertex data.
     float vertices[] =
     {
-        // Positions.
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f,
+        // Positions.           // Colors                   // Texture coordinates
+        -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
+         0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,
+         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,
+        -0.5f,  0.5f, 0.0f,     1.0f, 0.0f, 1.0f, 1.0f,     0.0f, 1.0f,
     };
 
     // Index data.
@@ -67,10 +69,12 @@ int main()
     };
 
     {
-        VertexBuffer vb(vertices, 4 * 3 * sizeof(float));
+        VertexBuffer vb(vertices, 4 * 9 * sizeof(float));
 
         VertexBufferLayout layout;
-        layout.Push<float>(3);
+        layout.Push<float>(3);  // position
+        layout.Push<float>(4);  // color
+        layout.Push<float>(2);  // texture coordinate
 
         IndexBuffer ib(indices, 6);
         ib.Unbind();
@@ -82,6 +86,48 @@ int main()
         Shader shader("res/shaders/source.shader");
         shader.Bind();
 
+        unsigned int texture1;
+        glGenTextures(1, &texture1);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR_MIPMAP_LINEAR);
+        int width1, height1, nrChannels1;
+        stbi_set_flip_vertically_on_load(true);
+        unsigned char* textureData1 = stbi_load("res/textures/img1.jpg", &width1, &height1, &nrChannels1, 0);
+        ASSERT(textureData1);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width1, height1, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData1);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        stbi_image_free(textureData1);
+        shader.SetUniform("u_texture1", 0);
+
+        unsigned int texture2;
+        glGenTextures(1, &texture2);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR_MIPMAP_LINEAR);
+        int width2, height2, nrChannels2;
+        stbi_set_flip_vertically_on_load(true);
+        unsigned char* textureData2 = stbi_load("res/textures/img2.jpg", &width2, &height2, &nrChannels2, 0);
+        ASSERT(textureData2);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width2, height2, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData2);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        stbi_image_free(textureData2);
+        shader.SetUniform("u_texture2", 1);
+
+       
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
+
         Renderer renderer;
 
         // Render Loop.
@@ -89,10 +135,7 @@ int main()
         {
             ProcessInput(window);
             renderer.Clear();
-
-            // Set uniform value dynamically.
-            float greenValue = sin(glfwGetTime() * 3) / 2 + 0.5f;
-            shader.SetUniform("u_greenValue", greenValue);
+            
             
             renderer.Draw(va, ib, shader);
 
